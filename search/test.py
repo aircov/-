@@ -42,8 +42,8 @@ from config import es
 #     es.index(index='news', doc_type='politics', body=data)
 
 
-result = es.search(index='news', doc_type='politics')
-print(result)
+# result = es.search(index='news', doc_type='politics')
+# print(result)
 
 dsl = {
     'query': {
@@ -54,4 +54,21 @@ dsl = {
 }
 
 result = es.search(index='news', doc_type='politics', body=dsl)
+# print(json.dumps(result, indent=4, ensure_ascii=False))
+
+
+dsl2 = {
+    'query': {
+        'match': {
+            'query': '马云'
+        }
+    },
+    "highlight": {
+        "fields": {
+            "query": {}
+        }
+    }
+}
+
+result = es.search(index='hot_words', doc_type='doc', body=dsl2)
 print(json.dumps(result, indent=4, ensure_ascii=False))

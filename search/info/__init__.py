@@ -27,7 +27,7 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
 
     # 注册蓝图
-    from info.modules.search_content import search_content_blu
-    app.register_blueprint(search_content_blu)
+    from info.modules.search_person import search_person_blu
+    app.register_blueprint(search_person_blu)
 
     return app

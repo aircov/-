@@ -5,11 +5,17 @@ Author:yuzg667
 https://github.com/yuzg667/hotwords
 '''
 import datetime
+import time
 
+from elasticsearch import Elasticsearch, helpers
 import requests
 from bs4 import BeautifulSoup
 import re
 import pymysql
+
+db = pymysql.connect(host="127.0.0.1", port=3306, user='root', password='mysql', db='information')
+cursor = db.cursor()
+es = Elasticsearch("127.0.0.1")
 
 
 def getbaiduHotWord():
@@ -48,7 +54,7 @@ def getbaiduHotWord():
             jumpHref = "https://www.baidu.com/baidu?cl=3&tn=SE_baiduhomet8_jmjb7mjw&rsv_dl=fyb_top&fr=top1000&wd=" + str(
                 query[0])
             resDict = {"num": str(i + 1), "query": query[0], "heat": heat[-1], "url": jumpHref,
-                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "source": "百度"}
 
             resDictList.append(resDict)
             i = i + 1
@@ -96,7 +102,7 @@ def getweiboHotWord():
             if len(heat) < 1:
                 heat = ["置顶"]
             resDict = {"num": str(i + 1), "query": query[0], "heat": heat[0], "url": jumpHref,
-                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "source": "微博"}
 
             resDictList.append(resDict)
         i = i + 1
@@ -104,9 +110,6 @@ def getweiboHotWord():
 
 
 def save_to_mysql(data):
-    db = pymysql.connect(host="127.0.0.1", port=3306, user='root', password='mysql', db='information')
-    cursor = db.cursor()
-
     for i in data:
         keys = ", ".join(i.keys())
         values = ", ".join(['%s'] * len(i))
@@ -121,24 +124,99 @@ def save_to_mysql(data):
         try:
             ret = cursor.execute(insert_sql, tuple(i.values()))
             db.commit()
-            print("Successful")
+            # print("Successful")
         except Exception as e:
             print("Failed", e, insert_sql, tuple(i.values()))
             db.rollback()
 
-    print("数据保存成功")
+    print("%s 数据保存成功!" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+
+
+def built_es_index():
+    # 建立es索引，映射
+    mapping = {
+        'properties': {
+            'query': {
+                'type': 'text',
+                'analyzer': 'ik_max_word',
+                'search_analyzer': 'ik_max_word'
+            }
+        }
+    }
+    es.indices.delete(index='hot_words', ignore=[400, 404])
+    es.indices.create(index='hot_words', ignore=400)
+    result = es.indices.put_mapping(index='hot_words', doc_type='doc', body=mapping)
+    print(result)
 
 
 def read_mysql_to_es():
-    # 保存数据到mysql
-    pass
+    # 保存数据到es,全量更新
+    start_time = time.time()
+    sql = """select num,query,heat,url,crawl_time,source from hot_words"""
+    cursor.execute(sql)
+    columns = [column[0] for column in cursor.description]
+    datas = []
+    for row in cursor.fetchall():
+        datas.append(dict(zip(columns, row)))
 
+    # print(datas)
+    actions = []
+    for data in datas:
+        action = {
+            '_index': 'hot_words',
+            '_type': 'doc',
+            '_source': {
+                'num': data.get('num'),
+                'query': data.get('query'),
+                'heat': data.get('heat'),
+                'url': data.get('url'),
+                'crawl_time': data.get('crawl_time'),
+                'source': data.get('source'),
+            }
+        }
+        actions.append(action)
+
+    helpers.bulk(es, actions=actions, raise_on_error=True)
+    end_time = time.time()
+    print('导入数据耗时：', (end_time - start_time))
+
+
+def generator():
+    # 保存数据到es，增量更新
+    start_time = time.time()
+    sql = """select num,query,heat,url,crawl_time,source from hot_words"""
+    cursor.execute(sql)
+    columns = [column[0] for column in cursor.description]
+    datas = []
+    for row in cursor.fetchall():
+        datas.append(dict(zip(columns, row)))
+
+    for data in datas:
+        yield {
+            '_op_type': 'create',
+            '_id': data.get('query'),
+            '_source': {
+                'num': data.get('num'),
+                'query': data.get('query'),
+                'heat': data.get('heat'),
+                'url': data.get('url'),
+                'crawl_time': data.get('crawl_time'),
+                'source': data.get('source'),
+            }
+        }
+    end_time = time.time()
+    print('导入数据耗时：', (end_time - start_time))
 
 if __name__ == '__main__':
-    res = getweiboHotWord()
-    # print(res)
+    res = getbaiduHotWord()
     save_to_mysql(res)
 
-    ret = getbaiduHotWord()
-    # print(ret)
+    ret = getweiboHotWord()
     save_to_mysql(ret)
+
+    # 第一次运行建立es——index
+    # built_es_index()
+
+    # 保存到es
+    # read_mysql_to_es()
+    helpers.bulk(es,generator(),index='hot_words',doc_type='doc', raise_on_exception=False, raise_on_error=False)

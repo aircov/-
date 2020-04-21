@@ -31,5 +31,5 @@ config = {
 # 线上
 conn_redis = redis.StrictRedis('127.0.0.1',6379,0)
 
-es = Elasticsearch(host="47.102.99.199")
+es = Elasticsearch(host="127.0.0.1")
 
