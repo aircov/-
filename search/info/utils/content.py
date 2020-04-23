@@ -3,47 +3,17 @@ from config import es
 
 
 
-def search_content_index(keyword, page, limit):
+def search_content_indistinct(keyword, page, limit):
     if len(keyword) > 1:
         if re.match(r'^[a-zA-Z0-9]+$', keyword):
             # fuzzy “fuzziness”为“编辑距离”,相似度,“prefix_length”前缀相同长度。
             body = {
-
                 "query": {
-                    "bool": {
-                        "must":{
-                            "bool":{
-                                "should": [
-                                    {
-                                        "fuzzy": {
-                                            "title": {
-                                                "value": keyword,
-                                                "fuzziness": 1,
-                                                "prefix_length": 2
-                                            }
-                                        }
-
-                                    },
-                                    {
-                                        "fuzzy": {
-                                            "content": {
-                                                "value": keyword,
-                                                "fuzziness": 1,
-                                                "prefix_length": 2
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-
-                        },
-                        "filter": {
-                            "bool":{
-                                "must": [
-                                    {"term": {"deleted": "0"}},
-                                    {"term": {"status": "published"}}
-                                ],
-                            }
+                    "fuzzy": {
+                        "query": {
+                            "value": keyword,
+                            "fuzziness": 1,  # 'fuzziness': 'AUTO'
+                            "prefix_length": 2
                         }
                     }
                 },
@@ -57,60 +27,57 @@ def search_content_index(keyword, page, limit):
                         "must": {
                             "multi_match": {
                                 'query': keyword,
-                                'fields': ['title', 'content', 'longContent'],
+                                'fields': ['query'],
                                 'fuzziness': 'AUTO',
                             }
                         },
-                        "filter": {
-                            "bool":{
-                                "must": [
-                                    {"term": {"deleted": "0"}},
-                                    {"term": {"status": "published"}}
-                                ],
-                            }
-                        }
+                        # "filter": {
+                        #     "bool":{
+                        #         "must": [
+                        #             {"term": {"deleted": "0"}},
+                        #             {"term": {"status": "published"}}
+                        #         ],
+                        #     }
+                        # }
                     }
                 },
                 'from': (int(page) - 1) * int(limit),
-                'size': int(limit)
+                'size': int(limit),
+                # 排序
+                # "sort": {
+                #     "heat": {
+                #         "order": "desc"
+                #     }
+                # }
+                # 高亮
+                "highlight": {
+                    "fields": {
+                        "query": {}
+                    }
+                }
             }
 
     else:
         # 单个字搜索
         body = {
             "query": {
-
-                "bool": {
-                    "must": {
-                        "bool": {
-                            "should": [{
-                                "wildcard": {
-                                    "title": "*" + keyword + "*",
-                                }
-                            }, {
-                                "wildcard": {
-                                    "content": "*" + keyword + "*",
-                                }
-                            }, {
-                                "wildcard": {
-                                    "longContent": "*" + keyword + "*",
-                                }
-                            }]
-                        }
-                    },
-                    "filter": {
-                        "bool":{
-                            "must": [
-                                {"term": {"deleted": "0"}},
-                                {"term": {"status": "published"}}
-                            ],
-                        }
-                    }
+                "wildcard": {
+                    "query": "*" + keyword + "*",
                 }
             },
             'from': (int(page) - 1) * int(limit),
             'size': int(limit),
         }
 
-    ret_content = es.search(index='subject', doc_type='wbc_subject', body=body)
+    ret_content = es.search(index='hot_words', doc_type='doc', body=body)
+    return ret_content
+
+def search_content_exact(keyword, page, limit):
+    """
+    精确搜索
+    :return:
+    """
+    body = {"query": {"term": {"query.keyword": keyword}}}
+
+    ret_content = es.search(index='hot_words', doc_type='doc', body=body)
     return ret_content

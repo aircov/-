@@ -100,7 +100,7 @@ def getweiboHotWord():
 
             jumpHref = "https://s.weibo.com" + str(jumpHref[0])
             if len(heat) < 1:
-                heat = ["置顶"]
+                heat = ["99999999"]
             resDict = {"num": str(i + 1), "query": query[0], "heat": heat[0], "url": jumpHref,
                        "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "source": "微博"}
 
@@ -114,33 +114,51 @@ def save_to_mysql(data):
         keys = ", ".join(i.keys())
         values = ", ".join(['%s'] * len(i))
 
-        # 删除
-        del_sql = """delete from hot_words where query='{}'""".format(i.get("query"))
-        cursor.execute(del_sql)
-        db.commit()
-
-        # 插入
-        insert_sql = """insert into {} ({}) value ({})""".format("hot_words", keys, values)
-        try:
-            ret = cursor.execute(insert_sql, tuple(i.values()))
+        # 去重
+        sel_sql = """select * from hot_words where query='{}' and source = '{}'""".format(i.get("query"),i.get("source"))
+        cursor.execute(sel_sql)
+        sel_data = cursor.fetchall()
+        if len(sel_data)>0:
+            # 有重复数据
+            up_sql = """update hot_words set num='{}', heat='{}',crawl_time='{}' where query='{}' and source = '{}'""".format(i.get("num"),i.get("heat"),i.get("crawl_time"),i.get("query"),i.get("source"))
+            cursor.execute(up_sql)
             db.commit()
-            # print("Successful")
-        except Exception as e:
-            print("Failed", e, insert_sql, tuple(i.values()))
-            db.rollback()
+
+        else:
+            # 插入
+            insert_sql = """insert into {} ({}) value ({})""".format("hot_words", keys, values)
+            try:
+                ret = cursor.execute(insert_sql, tuple(i.values()))
+                db.commit()
+                # print("Successful")
+            except Exception as e:
+                print("Failed", e, insert_sql, tuple(i.values()))
+                db.rollback()
 
     print("%s 数据保存成功!" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
 
 def built_es_index():
-    # 建立es索引，映射
+    # 建立es索引，映射  TODO 设置分片、
     mapping = {
         'properties': {
             'query': {
                 'type': 'text',
                 'analyzer': 'ik_max_word',
-                'search_analyzer': 'ik_max_word'
-            }
+                'search_analyzer': 'ik_max_word',
+                "fields": {
+                    "keyword": {             #name.keyword keyword类型，用于排序和聚合
+                        "type": "keyword"
+                    }
+                }
+            },
+            'heat':{
+                'type':'integer'
+            },
+            'crawl_time': {
+                'type': 'date',
+                "format":'yyyy-MM-dd HH:mm:ss'   # 设置日期格式
+            },
         }
     }
     es.indices.delete(index='hot_words', ignore=[400, 404])
@@ -184,17 +202,17 @@ def read_mysql_to_es():
 def generator():
     # 保存数据到es，增量更新
     start_time = time.time()
-    sql = """select num,query,heat,url,crawl_time,source from hot_words"""
+    sql = """select id,num,query,heat,url,crawl_time,source from hot_words"""
     cursor.execute(sql)
     columns = [column[0] for column in cursor.description]
     datas = []
     for row in cursor.fetchall():
         datas.append(dict(zip(columns, row)))
-
+    # print(datas)
     for data in datas:
         yield {
             '_op_type': 'create',
-            '_id': data.get('query'),
+            '_id': data.get('id'),
             '_source': {
                 'num': data.get('num'),
                 'query': data.get('query'),
@@ -219,4 +237,4 @@ if __name__ == '__main__':
 
     # 保存到es
     # read_mysql_to_es()
-    helpers.bulk(es,generator(),index='hot_words',doc_type='doc', raise_on_exception=False, raise_on_error=False)
+    helpers.bulk(es,generator(),index='hot_words',doc_type='doc',raise_on_exception=False, raise_on_error=False)

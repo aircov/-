@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch, helpers
 
 
 #显示所有列
-pd.set_option('display.max_columns', None)
+# pd.set_option('display.max_columns', None)
 # 连接到es集群
 es = Elasticsearch(['127.0.0.1'],
                    sniff_on_connection_fail=True,  # 节点无响应时刷新节点
