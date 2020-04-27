@@ -45,10 +45,10 @@ def search_content_indistinct(keyword, page, limit):
                 'size': int(limit),
                 # 排序
                 # "sort": {
-                #     "heat": {
+                #     "update_time": {
                 #         "order": "desc"
                 #     }
-                # }
+                # },
                 # 高亮
                 "highlight": {
                     "fields": {

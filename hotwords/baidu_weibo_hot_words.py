@@ -54,7 +54,7 @@ def getbaiduHotWord():
             jumpHref = "https://www.baidu.com/baidu?cl=3&tn=SE_baiduhomet8_jmjb7mjw&rsv_dl=fyb_top&fr=top1000&wd=" + str(
                 query[0])
             resDict = {"num": str(i + 1), "query": query[0], "heat": heat[-1], "url": jumpHref,
-                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "source": "百度"}
+                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "update_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),"source": "百度"}
 
             resDictList.append(resDict)
             i = i + 1
@@ -102,7 +102,7 @@ def getweiboHotWord():
             if len(heat) < 1:
                 heat = ["99999999"]
             resDict = {"num": str(i + 1), "query": query[0], "heat": heat[0], "url": jumpHref,
-                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "source": "微博"}
+                       "crawl_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "update_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),"source": "微博"}
 
             resDictList.append(resDict)
         i = i + 1
@@ -120,12 +120,21 @@ def save_to_mysql(data):
         sel_data = cursor.fetchall()
         if len(sel_data)>0:
             # 有重复数据
-            up_sql = """update hot_words set num='{}', heat='{}',crawl_time='{}' where query='{}' and source = '{}'""".format(i.get("num"),i.get("heat"),i.get("crawl_time"),i.get("query"),i.get("source"))
-            cursor.execute(up_sql)
-            db.commit()
+            columns = [column[0] for column in cursor.description]
+            datas = []
+            for row in sel_data:
+                datas.append(dict(zip(columns, row)))
+            print(datas)
+            # 如果数据库中的heat值小于本次爬取的，更新数据
+            if int(datas[0].get('heat'))<int(i.get('heat')):
+                up_sql = """update hot_words set num='{}', heat='{}',update_time='{}'  where query='{}' and source = '{}'""".format(i.get("num"),i.get("heat"),i.get("update_time"),i.get("query"),i.get("source"))
+                cursor.execute(up_sql)
+                db.commit()
+            else:
+                pass
 
         else:
-            # 插入
+            # 没有重复数据，插入
             insert_sql = """insert into {} ({}) value ({})""".format("hot_words", keys, values)
             try:
                 ret = cursor.execute(insert_sql, tuple(i.values()))
@@ -159,6 +168,10 @@ def built_es_index():
                 'type': 'date',
                 "format":'yyyy-MM-dd HH:mm:ss'   # 设置日期格式
             },
+            'update_time': {
+                'type': 'date',
+                "format":'yyyy-MM-dd HH:mm:ss'   # 设置日期格式
+            },
         }
     }
     es.indices.delete(index='hot_words', ignore=[400, 404])
@@ -189,6 +202,7 @@ def read_mysql_to_es():
                 'heat': data.get('heat'),
                 'url': data.get('url'),
                 'crawl_time': data.get('crawl_time'),
+                'update_time': data.get('update_time'),
                 'source': data.get('source'),
             }
         }
@@ -202,13 +216,13 @@ def read_mysql_to_es():
 def generator():
     # 保存数据到es，增量更新
     start_time = time.time()
-    sql = """select id,num,query,heat,url,crawl_time,source from hot_words"""
+    sql = """select id,num,query,heat,url,crawl_time,update_time,source from hot_words"""
     cursor.execute(sql)
     columns = [column[0] for column in cursor.description]
     datas = []
     for row in cursor.fetchall():
         datas.append(dict(zip(columns, row)))
-    # print(datas)
+    print(len(datas))
     for data in datas:
         yield {
             '_op_type': 'create',
@@ -219,6 +233,7 @@ def generator():
                 'heat': data.get('heat'),
                 'url': data.get('url'),
                 'crawl_time': data.get('crawl_time'),
+                'update_time': data.get('update_time'),
                 'source': data.get('source'),
             }
         }
@@ -233,7 +248,7 @@ if __name__ == '__main__':
     save_to_mysql(ret)
 
     # 第一次运行建立es——index
-    # built_es_index()
+    built_es_index()
 
     # 保存到es
     # read_mysql_to_es()
