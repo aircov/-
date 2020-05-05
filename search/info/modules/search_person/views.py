@@ -52,7 +52,7 @@ def search_person():
     exact_people = st2.get_result()
 
     ret = dict()
-    ret['indistinct_people'] = indistinct_people['hits']['hits']
+    ret['indistinct_people'] = indistinct_people
     ret['exact_people'] = exact_people.get('hits').get('hits') if exact_people.get('hits').get('hits') else []
 
     return jsonify(code=RET.OK, message='OK', body=ret)
@@ -81,7 +81,8 @@ def index():
     # 搜索词(支持中文，英文，英文首字母)
     s = wd
 
-    result = search_script_conf.get_tips_word(search_script_conf.sug, search_script_conf.data, s)[:100]
+    # 返回15个
+    result = search_script_conf.get_tips_word(search_script_conf.sug, search_script_conf.data, s)[:15]
 
     response = make_response(
         """queryList({'q':'""" + wd + """','p':false,'s':""" + str(result) + """});""")

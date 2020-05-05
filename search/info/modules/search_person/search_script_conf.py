@@ -157,7 +157,7 @@ def get_search_result(es_search_options, scroll='5m', index='hot_words', doc_typ
 def set_search_optional():
     # 检索选项
     es_search_options = {
-        "_source": ["query"],  # 只返回loginName，userId
+        "_source": ["query"],  # 只返回query字段
         "query": {
             "match_all": {
             }

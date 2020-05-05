@@ -148,7 +148,7 @@ def save_to_mysql(data):
 
 
 def built_es_index():
-    # 建立es索引，映射  TODO 设置分片、
+    # 建立es索引，映射  设置分片、
     mapping = {
         'properties': {
             'query': {
@@ -175,8 +175,26 @@ def built_es_index():
         }
     }
     es.indices.delete(index='hot_words', ignore=[400, 404])
-    es.indices.create(index='hot_words', ignore=400)
+    es.indices.create(index='hot_words', ignore=400,
+                      body={
+                            "index":{
+                                "number_of_shards": 5,  # 分片个数，在创建索引不指定时 默认为5， 可根据集群node数量合理设置分片个数，从而提高数据查询、读取效率
+                                "number_of_replicas": 1  # 数据副本，一般设置为 1
+                            }
+                        }
+                      )
     result = es.indices.put_mapping(index='hot_words', doc_type='doc', body=mapping)
+
+    # 设置max_result_window
+    es.indices.put_settings(
+        index="hot_words",
+        body={
+            "index":{
+                "max_result_window":500000,
+            }
+        }
+    )
+
     print(result)
 
 

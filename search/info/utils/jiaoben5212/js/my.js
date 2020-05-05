@@ -11,14 +11,14 @@ var oul = $("oul");
 ipt.oninput = function() {
 	var ss = ipt.value;
 	// var url = "http://suggestion.baidu.com/su?cb=queryList&wd=" + ss;
-	var url = "http://47.102.99.199:5000/api/search/person/su?cb=queryList&wd=" + ss;
+	var url = "http://47.102.99.199:5000/api/search/content/su?cb=queryList&wd=" + ss;
 	addScript(url);
 }
 
 ipt.onfocus = function() {
 	var ss = ipt.value;
 	// var url = "http://suggestion.baidu.com/su?cb=queryList&wd=" + ss;
-	var url = "http://47.102.99.199:5000/api/search/person/su?cb=queryList&wd=" + ss;
+	var url = "http://47.102.99.199:5000/api/search/content/su?cb=queryList&wd=" + ss;
 	addScript(url);
 
 }
