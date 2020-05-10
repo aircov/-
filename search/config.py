@@ -29,7 +29,7 @@ config = {
 
 
 # 线上
-conn_redis = redis.StrictRedis('127.0.0.1',6379,0)
+conn_redis = redis.StrictRedis('127.0.0.1',6379,0,decode_responses=True)
 
 es = Elasticsearch(host="127.0.0.1")
 

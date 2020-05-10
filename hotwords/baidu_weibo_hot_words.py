@@ -3,6 +3,8 @@
 获取百度热搜词
 Author:yuzg667
 https://github.com/yuzg667/hotwords
+# 每小时执行一次热搜词爬虫脚本
+0 */1 * * * /usr/bin/python3 /root/recmd_proj/hotwords/baidu_weibo_hot_words.py >> /root/recmd_proj/hotwords/log.log 2>&1
 '''
 import datetime
 import time

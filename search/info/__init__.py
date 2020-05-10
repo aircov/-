@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+@time   : 2020/05/10 12:13
+@author : 姚明伟
+"""
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -27,7 +32,9 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
 
     # 注册蓝图
-    from info.modules.search_person import search_content_blu
+    from info.modules.search_content import search_content_blu
     app.register_blueprint(search_content_blu)
+    from info.modules.sensitive import sensitive_blu
+    app.register_blueprint(sensitive_blu)
 
     return app
