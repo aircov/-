@@ -93,7 +93,7 @@ def index():
     # 返回15个
     result = search_script_conf.get_tips_word(search_script_conf.sug, search_script_conf.data, s)
     print('前缀：',result)
-
+    data = {}
     if len(result)>0:
         # 从redis获取热度值
         heat_list = r.hmget("hot_word_heat",result)
@@ -115,6 +115,7 @@ def index():
     ret['msg'] = "ok"
     ret['search_word'] = wd
     ret['search_result'] = result
+    ret['heat_rank'] = data
     ret['search_type'] = 'search_tips'
     ret['gmt_created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     ret['user_id'] = ''

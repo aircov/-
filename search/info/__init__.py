@@ -36,5 +36,7 @@ def create_app(config_name):
     app.register_blueprint(search_content_blu)
     from info.modules.sensitive import sensitive_blu
     app.register_blueprint(sensitive_blu)
+    from info.modules.index import index_blu
+    app.register_blueprint(index_blu)
 
     return app

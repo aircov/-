@@ -4,6 +4,8 @@
 @author : 姚明伟
 # mysql数据更新到redis
 """
+import datetime
+
 import pymysql
 import redis
 
@@ -27,7 +29,7 @@ def main():
     # 删除之前保存的
     r.delete("hot_word_heat")
     pl.execute()
-    print("数据保存到redis成功")
+    print("数据保存到redis成功{}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
     # print(r.hgetall("hot_word_heat"))
     print(len(r.hgetall("hot_word_heat")))
