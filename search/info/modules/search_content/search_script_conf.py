@@ -35,7 +35,7 @@ def get_every_word_first(text):
     :return: 返回拼音首字母
     """
 
-    return ''.join([i[0] for i in pinyin(text).split(' ') if len(i) > 0])
+    return ''.join([i[0] for i in pinyin(text).split(' ') if len(i) > 0]).replace(' ','').lower()
 
 
 # 获取拼音的第一个首字母
@@ -45,7 +45,7 @@ def get_all_pinying(text):
         :return: 文本转拼音
         """
     gap = ''
-    piny = gap.join(pypinyin.lazy_pinyin(text))
+    piny = gap.join(pypinyin.lazy_pinyin(text)).replace(' ','').lower()
 
     return piny
 
@@ -59,7 +59,7 @@ class Suggester(object):
     def update_trie(self, word_list):
         for word in word_list:
             # word = word.lower()
-            # 拼音提取
+            # 拼音提取，首字母，全拼都改成小写，去空格
             word_pinyin1 = get_every_word_first(word)
             word_pinyin2 = get_all_pinying(word)
 
