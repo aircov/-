@@ -118,7 +118,7 @@ def index():
     ret['search_word'] = wd
     ret['search_result'] = result
     ret['heat_rank'] = data_top
-    ret['search_type'] = 'search_tips'
+    ret['search_type'] = 'search_suggest'
     ret['gmt_created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     ret['user_id'] = ''
     ret['platformCode'] = ''
