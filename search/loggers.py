@@ -5,19 +5,26 @@ import time
 import logging
 import inspect
 
+from SafeLog import SafeLog
+
 dt = time.strftime("%Y%m%d")
 
-handlers = {logging.DEBUG: "./logs/debug_%s.log" % (dt),
-            logging.INFO: "./logs/info_%s.log" % (dt),
-            logging.WARNING: "./logs/warn_%s.log" % (dt),
-            logging.ERROR: "./logs/error_%s.log" % (dt)}
+log_level = 4   # 1:error, 2:warn, 3:info, 4:debug,
+
+handlers = {logging.DEBUG: "./logs/debug.log",
+            logging.INFO: "./logs/info.log",
+            logging.WARNING: "./logs/warn.log",
+            logging.ERROR: "./logs/error.log"}
 loggers = {}
 
 
 def init_loggers():
     for level in handlers.keys():
         path = os.path.abspath(handlers[level])
-        handlers[level] = logging.FileHandler(path)
+        #handlers[level] = logging.handlers.TimedRotatingFileHandler(path, when='M', encoding='utf8')
+        #SafeLog(handlers[level])
+        handlers[level] = SafeLog(path, when='midnight', encoding='utf8')
+        # handlers[level] = logging.handlers.TimedRotatingFileHandler(path, when='midnight', encoding='utf8')
     for level in handlers.keys():
         logger = logging.getLogger(str(level))
         # 如果不指定level，获得的handler似乎是同一个handler
@@ -43,21 +50,25 @@ def get_error_msg(message):
     return "[%s] [%s - %s - %s] %s" % (print_now(), filename, lineNo, functionName, message)
 
 
+def debug(message):
+    if log_level > 3:
+        message = get_log_msg(message)
+        loggers[logging.DEBUG].debug(message)
+
+
 def info(message):
-    message = get_log_msg(message)
-    loggers[logging.INFO].info(message)
+    if log_level > 2:
+        message = get_log_msg(message)
+        loggers[logging.INFO].info(message)
+
+
+def warn(message):
+    if log_level > 1:
+        message = get_log_msg(message)
+        loggers[logging.WARNING].warning(message)
 
 
 def error(message):
     message = get_error_msg(message)
     loggers[logging.ERROR].error(message)
 
-
-def debug(message):
-    message = get_log_msg(message)
-    loggers[logging.DEBUG].debug(message)
-
-
-def warn(message):
-    message = get_log_msg(message)
-    loggers[logging.WARNING].warning(message)

@@ -85,3 +85,14 @@ embedding_weights格式如下:
  输入：[0，0，0......,31,43,12,4,65,12,233,11,1391,131,4923,1233]
  输出：[0，0，1]
 
+## HotWords
+
+爬虫代码，自动爬取百度热搜，微博热搜，存储在mysql；
+
+mysql数据增量/全量保存到elasticsearch；
+
+save_to_redis：将mysql中query词和热度值保存在redis，hash结构，便于在搜索联想的时候按照heat排序。
+
+## Search
+
+搜索接口
