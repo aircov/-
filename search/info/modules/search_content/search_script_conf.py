@@ -173,18 +173,18 @@ def search():
     return final_result
 
 
-# 从ES获取用户名
-try:
-    final_results = search()
-    # print(final_results)
-    # print(pd.DataFrame(final_results))
-
-    word_list = [i.get('query') for i in final_results]
-
-    # 构建字典树
-    sug, data = build_all_trie(word_list)
-    print(data)
-
-
-except Exception as e:
-    logging.error(e)
+# # 从ES获取用户名
+# try:
+#     final_results = search()
+#     # print(final_results)
+#     # print(pd.DataFrame(final_results))
+#
+#     word_list = [i.get('query') for i in final_results]
+#
+#     # 构建字典树
+#     sug, data = build_all_trie(word_list)
+#     print(data)
+#
+#
+# except Exception as e:
+#     logging.error(e)

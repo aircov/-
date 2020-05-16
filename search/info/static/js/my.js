@@ -7,11 +7,14 @@ var ser = $("ser_box");
 var bot = $("bot_box");
 var oul = $("oul");
 
+var js_data = document.getElementById("dataid").getAttribute('d');
+
+
 
 ipt.oninput = function() {
 	var ss = ipt.value;
 	// var url = "http://suggestion.baidu.com/su?cb=queryList&wd=" + ss;
-	var url = "http://47.102.99.199:5000/api/search/content/su?cb=queryList&wd=" + ss;
+	var url = "http://47.102.99.199:5000/api/search/content/su?cb=queryList&wd=" + ss+"&user_id="+js_data;
 	addScript(url);
 }
 
