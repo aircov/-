@@ -22,8 +22,8 @@ from sklearn.naive_bayes import MultinomialNB
 
 
 # plt参数设置
-# plt.rcParams["font.sans-serif"] = ["SimHei"]  # 用来正常显示中文标签
-# plt.rcParams["axes.unicode_minus"] = False  # 用来正常显示符号
+plt.rcParams["font.sans-serif"] = ["SimHei"]  # 用来正常显示中文标签
+plt.rcParams["axes.unicode_minus"] = False  # 用来正常显示符号
 
 # 加载用户自定义词典
 user_dict = ["海飞丝"]
@@ -121,16 +121,16 @@ print(features)
 两个词语和两个词语对。卡方检验是一种统计学的工具,用来检验数据的拟合度和关联度。在这里我们使用sklearn中的chi2方法。
 """
 
-N = 3
-for cat, cat_id in sorted(cat_to_id.items()):
-    features_chi2 = chi2(features, labels == cat_id)
-    indices = np.argsort(features_chi2[0])
-    feature_names = np.array(tfidf.get_feature_names())[indices]
-    unigrams = [v for v in feature_names if len(v.split(' ')) == 1]
-    bigrams = [v for v in feature_names if len(v.split(' ')) == 2]
-    print("# '{}':".format(cat))
-    print("  . Most correlated unigrams:\n       . {}".format('\n       . '.join(unigrams[-N:])))
-    print("  . Most correlated bigrams:\n       . {}".format('\n       . '.join(bigrams[-N:])))
+# N = 3
+# for cat, cat_id in sorted(cat_to_id.items()):
+#     features_chi2 = chi2(features, labels == cat_id)
+#     indices = np.argsort(features_chi2[0])
+#     feature_names = np.array(tfidf.get_feature_names())[indices]
+#     unigrams = [v for v in feature_names if len(v.split(' ')) == 1]
+#     bigrams = [v for v in feature_names if len(v.split(' ')) == 2]
+#     print("# '{}':".format(cat))
+#     print("  . Most correlated unigrams:\n       . {}".format('\n       . '.join(unigrams[-N:])))
+#     print("  . Most correlated bigrams:\n       . {}".format('\n       . '.join(bigrams[-N:])))
 
 """
 我们可以看到经过卡方(chi2)检验后，找出了每个分类中关联度最强的两个词和两个词语对。这些词和词语对能很好的反映出分类的主题
@@ -165,7 +165,44 @@ myPredict("感谢京东自营产地直采。你们把握质量关。第三次购
 myPredict("头屑越洗越多，下次再也不买了。")
 
 
+"""
+接下来我们尝试不同的机器学习模型,并评估它们的准确率，我们将使用如下四种模型:
+Logistic Regression(逻辑回归)
+(Multinomial) Naive Bayes(多项式朴素贝叶斯)
+Linear Support Vector Machine(线性支持向量机)
+Random Forest(随机森林)
+"""
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 
+from sklearn.model_selection import cross_val_score
+
+models = [
+    RandomForestClassifier(n_estimators=200, max_depth=3, random_state=0),
+    LinearSVC(),
+    MultinomialNB(),
+    LogisticRegression(random_state=0),
+]
+CV = 5
+cv_df = pd.DataFrame(index=range(CV * len(models)))
+entries = []
+for model in models:
+    model_name = model.__class__.__name__
+    accuracies = cross_val_score(model, features, labels, scoring='accuracy', cv=CV)
+    for fold_idx, accuracy in enumerate(accuracies):
+        entries.append((model_name, fold_idx, accuracy))
+cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
+
+
+
+import seaborn as sns
+
+sns.boxplot(x='model_name', y='accuracy', data=cv_df)
+sns.stripplot(x='model_name', y='accuracy', data=cv_df,
+              size=8, jitter=True, edgecolor="gray", linewidth=2)
+plt.show()
 
 
 
