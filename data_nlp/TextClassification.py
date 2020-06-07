@@ -210,7 +210,12 @@ plt.show()
 """
 
 print(cv_df.groupby('model_name').accuracy.mean())
-
+# model_name
+# LinearSVC                 0.855110
+# LogisticRegression        0.839418
+# MultinomialNB             0.773005
+# RandomForestClassifier    0.546248
+# Name: accuracy, dtype: float64
 
 # 模型的评估
 # 下面我们就针对平均准确率最高的LinearSVC模型，我们将查看混淆矩阵，并显示预测标签和实际标签之间的差异。
@@ -235,3 +240,33 @@ plt.ylabel('实际结果', fontsize=18)
 plt.xlabel('预测结果', fontsize=18)
 plt.show()
 
+"""
+混淆矩阵的主对角线表示预测正确的数量,除主对角线外其余都是预测错误的数量.从上面的混淆矩阵可以看出"蒙牛"类预测最准确,
+只有一例预测错误。“平板”和“衣服”预测的错误数量教多。
+
+ 多分类模型一般不使用准确率(accuracy)来评估模型的质量,因为accuracy不能反应出每一个分类的准确性,因为当训练数据不平衡
+(有的类数据很多,有的类数据很少)时，accuracy不能反映出模型的实际预测精度,这时候我们就需要借助于F1分数、ROC等指标来评估模型。
+
+下面我们将查看各个类的F1分数.
+"""
+from sklearn.metrics import classification_report
+
+print('accuracy %s' % accuracy_score(y_pred, y_test))
+print(classification_report(y_test, y_pred, target_names=cat_id_df['cat'].values))
+
+
+"""
+从以上F1分数上看,"蒙牛"类的F1分数最大(只有一个预测错误)，“热水器”类F1分数最差只有66%，
+究其原因可能是因为“热水器”分类的训练数据最少只有574条,使得模型学习的不够充分,导致预测失误较多吧。
+
+下面我们来查看一些预测失误的例子,希望大家能从中发现一些奥秘,来改善我们的分类器。
+"""
+
+from IPython.display import display
+
+for predicted in cat_id_df.cat_id:
+    for actual in cat_id_df.cat_id:
+        if predicted != actual and conf_mat[actual, predicted] >= 6:
+            print("{} 预测为 {} : {} 例.".format(id_to_cat[actual], id_to_cat[predicted], conf_mat[actual, predicted]))
+            display(df.loc[indices_test[(y_test == actual) & (y_pred == predicted)]][['cat', 'review']])
+            print('')
