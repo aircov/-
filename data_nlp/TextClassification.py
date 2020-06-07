@@ -196,14 +196,42 @@ for model in models:
 cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
 
 
-
+# 箱体图
 import seaborn as sns
 
 sns.boxplot(x='model_name', y='accuracy', data=cv_df)
 sns.stripplot(x='model_name', y='accuracy', data=cv_df,
               size=8, jitter=True, edgecolor="gray", linewidth=2)
 plt.show()
+"""
+从可以箱体图上可以看出随机森林分类器的准确率是最低的，因为随机森林属于集成分类器(有若干个子分类器组合而成)，
+一般来说集成分类器不适合处理高维数据(如文本数据),因为文本数据有太多的特征值,使得集成分类器难以应付,另外三个分类器的
+平均准确率都在80%以上。其中线性支持向量机的准确率最高。
+"""
+
+print(cv_df.groupby('model_name').accuracy.mean())
 
 
+# 模型的评估
+# 下面我们就针对平均准确率最高的LinearSVC模型，我们将查看混淆矩阵，并显示预测标签和实际标签之间的差异。
 
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# 训练模型
+model = LinearSVC()
+X_train, X_test, y_train, y_test, indices_train, indices_test = train_test_split(features, labels, df.index,
+                                                                                 test_size=0.33, stratify=labels,
+                                                                                 random_state=0)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# 生成混淆矩阵
+conf_mat = confusion_matrix(y_test, y_pred)
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(conf_mat, annot=True, fmt='d',
+            xticklabels=cat_id_df.cat.values, yticklabels=cat_id_df.cat.values)
+plt.ylabel('实际结果', fontsize=18)
+plt.xlabel('预测结果', fontsize=18)
+plt.show()
 
