@@ -14,7 +14,7 @@ from gensim.models import KeyedVectors
 #有时候运行代码时会有很多warning输出，如提醒新版本之类的，如果不想乱糟糟的输出可以这样
 
 
-# 预训练词向量
+# 预训练词向量模型
 # 使用gensim加载预训练中文分词embedding
 cn_model = KeyedVectors.load_word2vec_format('data/sgns.zhihu.bigram',
                                           binary=False)
@@ -85,7 +85,7 @@ for i in range(len(neg_txts)):
 # from keras.layers import Dense, GRU, Embedding, LSTM, Bidirectional#Dense全连接
 # #Bidirectional双向LSTM  callbacks用来调参
 # from keras.preprocessing.text import Tokenizer
-# from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.sequence import pad_sequences
 # from keras.optimizers import RMSprop
 # from keras.optimizers import Adam
 # from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, ReduceLROnPlateau
@@ -163,7 +163,40 @@ print(reverse)
 print(train_texts_orig[0])
 # ‘早餐太差，无论去多少人，那边也不加食品的。酒店应该重视一下这个问题了。\n\n房间本身很好。’
 
-embedding_dim
+# 构建embedding matrix
+# 现在我们来为模型准备embedding matrix（词向量矩阵），根据keras的要求，我们需要准备一个维度为(numwords, embeddingdim)的矩阵
+# 【num words代表我们使用的词汇的数量，emdedding dimension在我们现在使用的预训练词向量模型中是300，
+# 每一个词汇都用一个长度为300的向量表示】注意我们只选择使用前50k个使用频率最高的词，在这个预训练词向量模型中，
+# 一共有260万词汇量，如果全部使用在分类问题上会很浪费计算资源，因为我们的训练样本很小，一共只有4k，如果我们有100k，
+# 200k甚至更多的训练样本时，在分类问题上可以考虑减少使用的词汇量。
+
+# 只使用大库前50000个词
+num_words = 50000
+# 初始化embedding_matrix，之后在keras上进行应用
+embedding_matrix = np.zeros((num_words, embedding_dim))
+# embedding_matrix为一个 [num_words，embedding_dim] 的矩阵
+# 维度为 50000 * 300
+for i in range(num_words):
+    embedding_matrix[i,:] = cn_model[cn_model.index2word[i]]
+embedding_matrix = embedding_matrix.astype('float32')
+
+# 检查index是否对应，
+# 输出300意义为长度为300的embedding向量一一对应
+np.sum( cn_model[cn_model.index2word[333]] == embedding_matrix[333] )
+
+# padding(填充)和truncating(修剪)
+# 我们把文本转换为tokens（索引）之后，每一串索引的长度并不相等，所以为了方便模型的训练我们需要把索引的长度标准化，
+# 上面我们选择了236这个可以涵盖95%训练样本的长度，接下来我们进行padding和truncating，我们一般采用’pre’的方法，
+# 这会在文本索引的前面填充0，因为根据一些研究资料中的实践，如果在文本索引后面填充0的话，会对模型造成一些不良影响。
+# 进行padding和truncating， 输入的train_tokens是一个list
+# 返回的train_pad是一个numpy array
+train_pad = pad_sequences(train_tokens, maxlen=max_tokens,
+                            padding='pre', truncating='pre')
+
+# 超出五万个词向量的词用0代替
+train_pad[ train_pad>=num_words ] = 0
 
 
+# 可见padding之后前面的tokens全变成0，文本在最后面
+print(train_pad[33])
 
