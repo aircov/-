@@ -1,5 +1,5 @@
 # recmd_project
-## data_nlp/day1
+## data_nlp/KerasSentimentAnalysis
 
 Keras情感分析（Sentiment Analysis）实战---自然语言处理技术
 
@@ -85,6 +85,31 @@ embedding_weights格式如下:
  输入：[0，0，0......,31,43,12,4,65,12,233,11,1391,131,4923,1233]
  输出：[0，0，1]
 
+
+
+## data_nlp/TextClassification
+
+文本分类一般可以分为二分类、多分类、多标签分类三种情况,二分类是指将一组文本分成两个类(0或1),比较常见的应用如垃圾邮件分类、电商网站的用户评价数据的正负面分类等,多分类是指将文本分成若干个类中的某一个类,比如说门户网站新闻可以归属到不同的栏目中(如政治、体育、社会、科技、金融等栏目)去。多标签分类指的是可以将文本分成若干个类中的多个类,比如一篇文章里即描写政治又描写金融等内容，那么这篇文章可能会别贴上政治和金融两个标签。尝试使用Python和sklearn来实现一下文本的多分类实战开发。
+
+```
+我们将使用如下四种模型:
+Logistic Regression(逻辑回归)
+(Multinomial) Naive Bayes(多项式朴素贝叶斯)
+Linear Support Vector Machine(线性支持向量机)
+Random Forest(随机森林)
+```
+
+各种模型准确率：
+
+```
+model_name
+LinearSVC                 0.855110
+LogisticRegression        0.839418
+MultinomialNB             0.773005
+RandomForestClassifier    0.546248
+Name: accuracy, dtype: float64
+```
+
 ## HotWords
 
 爬虫代码，自动爬取百度热搜，微博热搜，存储在mysql；
@@ -95,4 +120,27 @@ save_to_redis：将mysql中query词和热度值保存在redis，hash结构，便
 
 ## Search
 
-搜索接口
+搜索接口：<http://47.102.99.199:5000/api/search/content/?keyword=%E7%96%AB%E6%83%85&page=1&limit=10>
+
+搜索联想接口：<http://47.102.99.199:5000/>
+
+评论敏感词过滤接口：http://47.102.99.199:5000/api/sensitive
+
+Post---body {"txt":"国家主席习近平在中国青岛主持上海合作组织成员国元首理事会第十八次会议。王八蛋然后就是fuck dog 跟随着egg 主人公怒哀乐情节中。法.轮#功 难过就手机卡复制器 ，一个贱人 !！去看电影。小姐姐真漂亮，像个大王八,大王八，你妈的！cao大鸡儿蛋大刀肉。"}
+
+~~~json
+{
+    "txt": "国家主席习近平在中国青岛主持上海合作组织成员国元首理事会第十八次会议。王八蛋然后就是fuck dog 跟随着egg 主人公怒哀乐情节中。法.轮#功 难过就手机卡复制器 ，一个贱人 !！去看电影。小姐姐真漂亮，像个大王八,大王八，你妈的！cao大鸡儿蛋大刀肉。",
+    "txtLength": 129,
+    "regularResult": "非广告文本",
+    "ifContainSensitiveWord": true,
+    "sensitiveWordCount": 12,
+    "sensitiveWordList": "[政治:习近平; 其他:王八; 其他:fuck; 暴恐:法.轮#功; 暴恐:轮#功; 社会:手机卡复制器; 色情:贱人; 其他:王八,; 其他:王八，; 其他:你妈的！; 色情:cao; 色情:鸡儿]",
+    "score": 6,
+    "grade": "掩码",
+    "code": 4002,
+    "total_time": 0.0019259452819824219,
+    "txtReplace": "国家主席***在中国青岛主持上海合作组织成员国元首理事会第十八次会议。**蛋然后就是**** dog 跟随着egg 主人公怒哀乐情节中。***** 难过就****** ，一个** !！去看电影。小姐姐真漂亮，像个大**,大**，*******大**蛋大刀肉。"
+}
+~~~
+
