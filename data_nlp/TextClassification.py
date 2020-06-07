@@ -3,6 +3,7 @@
 @time   : 2020/06/01 20:51
 @author : 姚明伟
 https://blog.csdn.net/weixin_42608414/article/details/88046380
+使用Python和sklearn来实现一下文本的多分类实战开发
 """
 
 import pandas as pd
