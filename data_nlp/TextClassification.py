@@ -253,7 +253,23 @@ from sklearn.metrics import classification_report
 
 print('accuracy %s' % accuracy_score(y_pred, y_test))
 print(classification_report(y_test, y_pred, target_names=cat_id_df['cat'].values))
-
+# accuracy 0.8579358949604171
+#               precision    recall  f1-score   support
+#
+#           书籍       0.95      0.90      0.92      1271
+#           平板       0.73      0.78      0.76      3300
+#           手机       0.91      0.79      0.84       767
+#           水果       0.89      0.82      0.85      3300
+#          洗发水       0.78      0.83      0.80      3300
+#          热水器       0.86      0.49      0.63       190
+#           蒙牛       1.00      0.97      0.98       671
+#           衣服       0.83      0.88      0.86      3300
+#          计算机       0.94      0.86      0.90      1317
+#           酒店       0.98      0.97      0.98      3300
+#
+#     accuracy                           0.86     20716
+#    macro avg       0.89      0.83      0.85     20716
+# weighted avg       0.86      0.86      0.86     20716
 
 """
 从以上F1分数上看,"蒙牛"类的F1分数最大(只有一个预测错误)，“热水器”类F1分数最差只有66%，
