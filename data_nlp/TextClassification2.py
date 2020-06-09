@@ -182,7 +182,7 @@ embedding_matrix = embedding_matrix.astype('float32')
 
 # 检查index是否对应，
 # 输出300意义为长度为300的embedding向量一一对应
-np.sum( cn_model[cn_model.index2word[333]] == embedding_matrix[333] )
+print(np.sum(cn_model[cn_model.index2word[333]] == embedding_matrix[333]))
 
 # padding(填充)和truncating(修剪)
 # 我们把文本转换为tokens（索引）之后，每一串索引的长度并不相等，所以为了方便模型的训练我们需要把索引的长度标准化，
