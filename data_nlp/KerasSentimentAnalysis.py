@@ -152,6 +152,7 @@ class Sentiment:
         sen2id = [self.vocab.get(word, 0) for word in new_sen_list]
         sen_input = pad_sequences([sen2id], maxlen=self.maxlen)
         res = model.predict(sen_input)[0]
+        print('predict',model.predict(sen_input))
         return np.argmax(res)
 
 senti = Sentiment(w2id,embedding_weights,100,200,3)
