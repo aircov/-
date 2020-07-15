@@ -16,7 +16,7 @@ workers = 3  # 进程数量
 
 worker_class = 'sync'  # 默认的worker的类型，如何选择见：[http://docs](http://docs).[gunicorn.org/en/stable/design.html#choosing-a-worker-type](http://gunicorn.org/en/stable/design.html#choosing-a-worker-type)
 
-bind = '0.0.0.0:8000'  # 服务使用的端口
+bind = '0.0.0.0:5000'  # 服务使用的端口
 
 pidfile = '%s/gunicorn.pid' % path_of_current_dir  # 存放Gunicorn进程pid的位置，便于跟踪
 
