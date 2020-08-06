@@ -10,7 +10,7 @@ import os
 import pickle
 import time
 import lightgbm as lgb
-import xgboost as xgb
+# import xgboost as xgb
 import matplotlib.pylab as plt
 
 from sklearn import preprocessing
@@ -18,7 +18,7 @@ from sklearn.model_selection import StratifiedKFold, KFold, train_test_split, Gr
 # from sklearn import cross_validation, metrics   #Additional scklearn functions
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score
 
-from .functions import *
+from functions import *
 
 
 # 1.2 load preprocessed data

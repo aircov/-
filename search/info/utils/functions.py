@@ -11,7 +11,7 @@ import lightgbm as lgb
 import matplotlib.pylab as plt
 
 from sklearn.metrics import f1_score
-from sklearn.externals import joblib
+import joblib
 
 
 # 1. data preprocessing and save
