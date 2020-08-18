@@ -5,10 +5,14 @@
 """
 
 import sys
+import time
+
 import pinyin
 import jieba
 import string
 import re
+
+from count_time import count_time
 
 PUNCTUATION_LIST = string.punctuation  # 标点符号!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 PUNCTUATION_LIST += "。，？：；｛｝［］‘“”《》／！％……（）"  # 添加额外标点符号
@@ -87,7 +91,6 @@ def get_candidates(error_phrase):
 
 	error_pinyin = pinyin.get(error_phrase, format="strip", delimiter="/")  # 错误拼音
 	error_pinyin = str(error_pinyin)  # 转换成字符串格式，为后面选择拼音打下基础
-	cn_words_dict = load_cn_words_dict("cn_dict.txt")  # 导入单字
 	candidate_phrases = list(edits1(error_phrase, cn_words_dict))  # 编辑距离生成的候选词组
 
 	for candidate_phrase in candidate_phrases:  # 遍历编辑距离生成的候选词组
@@ -134,8 +137,12 @@ def auto_correct(error_phrase):
 # 使用auto_correct函数纠正拼写错误的短语
 # 输出正确的句子
 
+@count_time
 def auto_correct_sentence(error_sentence, verbose=True):
+	start_time = time.time()
 	jieba_cut = jieba.cut(error_sentence, cut_all=False)
+	print("jieba切词耗时：" , time.time()-start_time)
+
 	seg_list = "\t".join(jieba_cut).split("\t")  # 分词
 	correct_sentence = ""
 	for phrase in seg_list:

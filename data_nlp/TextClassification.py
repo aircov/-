@@ -14,7 +14,7 @@ import jieba as jb
 import pkuseg
 import re
 
-from sklearn.externals import joblib
+import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2
 from sklearn.model_selection import train_test_split
