@@ -11,14 +11,14 @@ import redis
 
 # mysql链接
 db = pymysql.connect(host="127.0.0.1", port=3306, user='root', password='mysql', db='information')
-A
+
 cursor = db.cursor()
 
 # redis链接
 r = redis.StrictRedis('127.0.0.1', 6379, 0, decode_responses=True)
 
 
-A
+
 def main():
     sql = """select query,heat from hot_words"""
     cursor.execute(sql)
